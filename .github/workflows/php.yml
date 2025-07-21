@@ -1,0 +1,56 @@
+name: CI - CodeIgniter 4
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, intl, curl, mysqli, xml
+        coverage: none
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Create writable directories
+      run: |
+        mkdir -p writable/cache
+        mkdir -p writable/logs
+        mkdir -p writable/session
+        chmod -R 777 writable
+
+    - name: PHP Lint
+      run: find . -type f -name "*.php" -exec php -l {} \;
+
+    # Enable only if you have tests set up
+    # - name: Run PHPUnit tests
+    #   run: vendor/bin/phpunit
+
+    # Optional: Add PHPStan or CodeSniffer here if needed
