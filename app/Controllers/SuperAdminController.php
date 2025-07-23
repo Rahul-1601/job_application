@@ -1,32 +1,32 @@
 <?php
+
 namespace App\Controllers;
 
 use App\Models\UserModel;
-use CodeIgniter\Controller;
 
-class AdminController extends BaseController
+class SuperAdminController extends BaseController
 {
     public function settings()
     {
         $session = session();
-        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'superadmin') {
             return redirect()->to('auth/login');
         }
 
         $userModel = new UserModel();
-        $data['users'] = $userModel->where('role !=', 'admin')->findAll();
+        $data['users'] = $userModel->findAll(); // Show all users, including admins
 
-        return view('admin/settings', $data);
+        return view('superadmin/settings', $data);
     }
 
     public function addUser()
     {
-        if (!$this->request->isAJAX()) {
+        if (!$this->request->isAJAX() && !$this->request->is('post')) {
             return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
         }
 
         $session = session();
-        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'superadmin') {
             return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
         }
 
@@ -35,7 +35,7 @@ class AdminController extends BaseController
             'last_name'  => 'required|min_length[3]',
             'email'      => 'required|valid_email|is_unique[users.email]',
             'password'   => 'required|min_length[6]',
-            'role'       => 'required|in_list[hr,interviewer]',
+            'role'       => 'required|in_list[admin,hr,interviewer]',
             'location'   => 'required',
             'department' => 'required'
         ];
@@ -48,7 +48,6 @@ class AdminController extends BaseController
         }
 
         $userModel = new UserModel();
-        
         $data = [
             'first_name' => $this->request->getPost('first_name'),
             'last_name'  => $this->request->getPost('last_name'),
@@ -57,7 +56,6 @@ class AdminController extends BaseController
             'role'       => $this->request->getPost('role'),
             'location'   => $this->request->getPost('location'),
             'department' => $this->request->getPost('department')
-
         ];
 
         try {
@@ -71,17 +69,14 @@ class AdminController extends BaseController
         }
     }
 
-    
-
     public function deleteUser()
     {
-        // Accept both AJAX and normal POST requests
         if (!$this->request->isAJAX() && !$this->request->is('post')) {
             return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
         }
 
         $session = session();
-        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'superadmin') {
             return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
         }
 
@@ -96,9 +91,10 @@ class AdminController extends BaseController
         if (!$user) {
             return $this->response->setJSON(['success' => false, 'message' => 'User not found']);
         }
-
-        if ($user['role'] === 'admin' || $user['role'] === 'superadmin') {
-            return $this->response->setJSON(['success' => false, 'message' => 'Cannot delete admin or super admin users']);
+      
+        if(in_array($user['role'], ['admin', 'superadmin'])){
+            return $this->response->setJSON(['success' => false, 'message' => 'Cannot delete admin or superadmin users']);
+        
         }
 
         try {
@@ -118,13 +114,13 @@ class AdminController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
         }
         $session = session();
-        if (!$session->get('isLoggedIn') || $session->get('role') !== 'admin') {
+        if (!$session->get('isLoggedIn') || $session->get('role') !== 'superadmin') {
             return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized']);
         }
         $userId = $this->request->getPost('id');
         $userModel = new \App\Models\UserModel();
         $user = $userModel->find($userId);
-        if (!$user || in_array($user['role'], ['admin', 'superadmin'])) {
+        if (!$user || in_array($user['role'], ['admin','superadmin'])) {
             return $this->response->setJSON(['success' => false, 'message' => 'Cannot edit this user']);
         }
         $data = [
@@ -133,7 +129,7 @@ class AdminController extends BaseController
             'email'      => $this->request->getPost('email'),
             'role'       => $this->request->getPost('role'),
             'location'   => $this->request->getPost('location'),
-            'department' => $this->request->getPost('department')
+            'department' => $this->request->getPost('department'),
         ];
         try {
             $userModel->update($userId, $data);

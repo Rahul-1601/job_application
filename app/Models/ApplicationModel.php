@@ -11,7 +11,8 @@ class ApplicationModel extends Model
         'last_salary', 'total_experience', 'resume',
         'preferred_location', 'current_location',
         'status', 'created_at','position',
-        'interview_date', 'interview_time'
+        'interview_date', 'interview_time',
+        'interviewer_id','department'
     ];
     
 }

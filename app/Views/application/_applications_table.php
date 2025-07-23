@@ -1,3 +1,4 @@
+<?php $session = session(); $userRole = $session->get('role'); ?>
 <div id="applications-table-wrapper">
     <div class="bg-white dark:bg-gray-800 border border-blue-200 dark:border-gray-700 shadow-sm rounded-lg">
         <div class="overflow-x-auto">
@@ -14,6 +15,7 @@
                         <th class="text-left py-3 px-6 font-semibold text-gray-900 dark:text-white">Position</th>
                         <th class="text-left py-3 px-6 font-semibold text-gray-900 dark:text-white">Date</th>
                         <th class="text-left py-3 px-6 font-semibold text-gray-900 dark:text-white">Time</th>
+                        <th class="text-left py-3 px-6 font-semibold text-gray-900 dark:text-white">Interviewer</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,8 +75,18 @@
                             </td>
                             <td class="py-3 px-6 text-gray-900 dark:text-white"><?= date('m/d/Y', strtotime($app['created_at'])) ?></td>
                             <td class="py-3 px-6">
-                                <?php if ($app['status'] === 'Accepted'): ?>
-                                    <span class="status-badge <?= $statusColor ?>">Accepted</span>
+                                <?php if ($userRole === 'interviewer'): ?>
+                                    <?php if ($app['status'] === 'Under Review'): ?>
+                                        <select id="status_dropdown_<?= $app['id'] ?>"
+                                                onchange="updateStatus(<?= $app['id'] ?>, this.value)"
+                                                class="text-xs font-semibold rounded-full px-3 py-1 border-0 <?= $statusColor ?> cursor-pointer">
+                                            <option value="Under Review" selected disabled>Under Review</option>
+                                            <option value="Accepted">Accepted</option>
+                                            <option value="Rejected">Rejected</option>
+                                        </select>
+                                    <?php else: ?>
+                                        <span class="status-badge <?= $statusColor ?>"><?= esc($app['status']) ?></span>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     <select id="status_dropdown_<?= $app['id'] ?>"
                                             onchange="updateStatus(<?= $app['id'] ?>, this.value)"
@@ -105,11 +117,28 @@
                                        onchange="updateInterviewSchedule(<?= $app['id'] ?>)"
                                        class="w-24 px-2 py-1 border border-blue-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
                             </td>
+                            <td class="py-3 px-6 text-gray-900 dark:text-white">
+                                <select onchange="assignInterviewer(<?= $app['id'] ?>, this.value)" class="w-40 px-2 py-1 border border-blue-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                                    <option value="">Select Interviewer</option>
+                                    <?php foreach (($interviewers ?? []) as $interviewer): ?>
+                                        <?php
+                                            $appPosition = strtolower($app['position']);
+                                            $intDept = strtolower($interviewer['department']);
+                                            if (($appPosition === 'tech' && $intDept === 'tech') || ($appPosition === 'non-tech' && $intDept === 'non_tech')):
+                                        ?>
+                                            <option value="<?= $interviewer['id'] ?>" <?= (isset($app['interviewer_id']) && $app['interviewer_id'] == $interviewer['id']) ? 'selected' : '' ?>>
+                                                <?= esc($interviewer['first_name'] . ' ' . $interviewer['last_name']) ?>
+                                            </option>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
         <!-- Pagination -->
         <div class="flex items-center justify-between mt-6">
             <div class="flex items-center space-x-2">
@@ -161,5 +190,28 @@ function updateInterviewSchedule(id) {
         }
     })
     .catch(() => alert('AJAX request failed'));
+}
+
+function assignInterviewer(appId, interviewerId) {
+    const csrfName = document.querySelector('meta[name="csrf-name"]').getAttribute("content");
+    const csrfHash = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+    const formData = new FormData();
+    formData.append('application_id', appId);
+    formData.append('interviewer_id', interviewerId);
+    formData.append(csrfName, csrfHash);
+
+    fetch('<?= site_url('applications/assign-interviewer') ?>', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Interviewer assigned!');
+        } else {
+            alert('Failed to assign interviewer');
+        }
+    });
 }
 </script> 

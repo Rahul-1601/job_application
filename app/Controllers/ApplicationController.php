@@ -84,7 +84,7 @@ class ApplicationController extends BaseController
         $builder = $model;
 
         if ($user && $user['role'] === 'interviewer') {
-            $builder = $builder->where('status', 'Accepted')
+            $builder = $builder->where('status', 'Under Review')
                                ->where('preferred_location', $user['location'])
                                ->where('position', 'Tech');
         } elseif ($user && $user['role'] === 'hr') {
@@ -129,6 +129,9 @@ class ApplicationController extends BaseController
         $data['search'] = $search;
         $data['perPage'] = $perPage;
 
+        // Fetch all interviewers for dropdown assignment
+        $data['interviewers'] = $userModel->select('id, first_name, last_name, department')->where('role', 'interviewer')->findAll();
+
         return view('application/view_Application', $data);
     }
 
@@ -152,7 +155,7 @@ class ApplicationController extends BaseController
         $builder = $model;
 
         if ($user && $user['role'] === 'interviewer') {
-            $builder = $builder->where('status', 'Accepted')
+            $builder = $builder->where('status', 'Under Review')
                                ->where('preferred_location', $user['location'])
                                ->where('position', $user['department']);
         } elseif ($user && $user['role'] === 'hr') {
@@ -184,6 +187,9 @@ class ApplicationController extends BaseController
         $data['pager'] = $builder->pager;
         $data['total'] = $builder->countAllResults(false);
         $data['perPage'] = $perPage;
+
+        // Fetch all interviewers for dropdown assignment
+        $data['interviewers'] = $userModel->select('id, first_name, last_name, department')->where('role', 'interviewer')->findAll();
 
         return view('application/_applications_table', $data);
     }
@@ -304,7 +310,7 @@ class ApplicationController extends BaseController
             return $this->response->setStatusCode(404)->setBody('File not found');
         }
 
-        $filePath = WRITEPATH . 'uploads/' . $filename;
+        $filePath = WRITEPATH . 'uploads/' . $filename; 
 
         if (!file_exists($filePath)) {
             return $this->response->setStatusCode(404)->setBody('File not found');
@@ -326,6 +332,25 @@ class ApplicationController extends BaseController
         $this->response->setHeader('Content-Length', filesize($filePath));
 
         return $this->response->setBody(file_get_contents($filePath));
+    }
+
+    public function assignInterviewer()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
+        }
+
+        $applicationId = $this->request->getPost('application_id');
+        $interviewerId = $this->request->getPost('interviewer_id');
+
+        if (!$applicationId || !$interviewerId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Missing data']);
+        }
+
+        $model = new \App\Models\ApplicationModel();
+        $updated = $model->update($applicationId, ['interviewer_id' => $interviewerId]);
+
+        return $this->response->setJSON(['success' => $updated]);
     }
 }
 

@@ -156,19 +156,32 @@
                     <div class="relative">
                         <button id="profile-dropdown" class="flex items-center space-x-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200 rounded-md px-2 py-1">
                             <div class="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                <span class="text-white text-sm font-medium">HR</span>
+                                <span class="text-white text-sm font-medium">
+                                    <?php
+                                        $first = $session->get('first_name');
+                                        $last = $session->get('last_name');
+                                        $initials = '';
+                                        if ($first) $initials .= strtoupper(mb_substr($first, 0, 1));
+                                        if ($last) $initials .= strtoupper(mb_substr($last, 0, 1));
+                                        echo $initials ?: 'U';
+                                    ?>
+                                </span>
                             </div>
                             <div class="text-left">
-                                <p class="text-sm font-medium text-gray-900 dark:text-white">Kedar Nath Behera</p>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">HR Manager</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                    <?= esc($session->get('first_name') . ' ' . $session->get('last_name')) ?>
+                                </p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    <?= esc($session->get('role')) ?> | <?= esc($session->get('email')) ?>
+                                </p>
                             </div>
                             <svg class="h-4 w-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <polyline points="6,9 12,15 18,9"></polyline>
                             </svg>
                         </button>
                         <div id="profile-menu" class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 hidden">
-                            <?php if ($session->get('role') === 'admin'): ?>
-                            <a href="<?= site_url('admin/settings') ?>" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <?php if (in_array($session->get('role'), ['admin', 'superadmin'])): ?>
+                            <a href="<?= site_url($session->get('role') === 'superadmin' ? 'superadmin/settings' : 'admin/settings') ?>" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="3"></circle>
                                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>

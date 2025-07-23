@@ -29,6 +29,9 @@ class AuthController extends Controller
                 $session->set('isLoggedIn', true);
                 $session->set('user_id', $user['id']);
                 $session->set('role', $user['role']);
+                $session->set('first_name', $user['first_name'] ?? '');
+                $session->set('last_name', $user['last_name'] ?? '');
+                $session->set('email', $user['email'] ?? '');
                 return redirect()->to('/applications');
             } else {
                 $errors = [];

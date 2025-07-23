@@ -36,10 +36,16 @@ $routes->get('view-resume/(:segment)', 'ApplicationController::viewResume/$1');
 $routes->get('admin/settings', 'AdminController::settings');
 $routes->post('admin/add-user', 'AdminController::addUser');
 $routes->post('admin/delete-user', 'AdminController::deleteUser');
+$routes->post('admin/edit-user', 'AdminController::editUser');
+$routes->get('superadmin/settings', 'SuperAdminController::settings');
+$routes->post('superadmin/add-user', 'SuperAdminController::addUser');
+$routes->post('superadmin/delete-user', 'SuperAdminController::deleteUser');
+$routes->post('superadmin/edit-user', 'SuperAdminController::editUser');
 
 //ajax for searching....
 $routes->get('applications/ajax-applications', 'ApplicationController::ajaxApplications');
 $routes->post('applications/update-interview-schedule', 'ApplicationController::updateInterviewSchedule');
+$routes->post('applications/assign-interviewer', 'ApplicationController::assignInterviewer');
 
 $routes->get('compose-demo', 'ComposeController::demo');
 $routes->post('compose-demo/save', 'ComposeController::save');
