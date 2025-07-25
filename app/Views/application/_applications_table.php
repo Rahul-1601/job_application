@@ -75,30 +75,37 @@
                             </td>
                             <td class="py-3 px-6 text-gray-900 dark:text-white"><?= date('m/d/Y', strtotime($app['created_at'])) ?></td>
                             <td class="py-3 px-6">
-                                <?php if ($userRole === 'interviewer'): ?>
-                                    <?php if ($app['status'] === 'Under Review'): ?>
-                                        <select id="status_dropdown_<?= $app['id'] ?>"
-                                                onchange="updateStatus(<?= $app['id'] ?>, this.value)"
-                                                class="text-xs font-semibold rounded-full px-3 py-1 border-0 <?= $statusColor ?> cursor-pointer">
-                                            <option value="Under Review" selected disabled>Under Review</option>
-                                            <option value="Accepted">Accepted</option>
-                                            <option value="Rejected">Rejected</option>
-                                        </select>
-                                    <?php else: ?>
-                                        <span class="status-badge <?= $statusColor ?>"><?= esc($app['status']) ?></span>
-                                    <?php endif; ?>
-                                <?php else: ?>
-                                    <select id="status_dropdown_<?= $app['id'] ?>"
-                                            onchange="updateStatus(<?= $app['id'] ?>, this.value)"
-                                            class="text-xs font-semibold rounded-full px-3 py-1 border-0 <?= $statusColor ?> cursor-pointer">
-                                        <option value="Pending" <?= $app['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                        <option value="Under Review" <?= $app['status'] === 'Under Review' ? 'selected' : '' ?>>Under Review</option>
-                                        <option value="Interview Scheduled" <?= $app['status'] === 'Interview Scheduled' ? 'selected' : '' ?>>Interview Scheduled</option>
-                                        <option value="Accepted" <?= $app['status'] === 'Accepted' ? 'selected' : '' ?>>Accepted</option>
-                                        <option value="Rejected" <?= $app['status'] === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
-                                    </select>
-                                <?php endif; ?>
-                            </td>
+    <?php if ($userRole === 'interviewer'): ?>
+        <?php if ($app['status'] === 'Under Review'): ?>
+            <select id="status_dropdown_<?= $app['id'] ?>"
+                    onchange="updateStatus(<?= $app['id'] ?>, this.value)"
+                    class="text-xs font-semibold rounded-full px-3 py-1 border-0 <?= $statusColor ?> cursor-pointer">
+                <option value="Under Review" selected disabled>Under Review</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+        <?php else: ?>
+            <span class="status-badge <?= $statusColor ?>"><?= esc($app['status']) ?></span>
+        <?php endif; ?>
+    <?php else: ?>
+        <select id="status_dropdown_<?= $app['id'] ?>"
+                onchange="updateStatus(<?= $app['id'] ?>, this.value)"
+                class="text-xs font-semibold rounded-full px-3 py-1 border-0 <?= $statusColor ?> cursor-pointer">
+            <?php if ($userRole === 'hr'): ?>
+                <option value="Pending" <?= $app['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                <option value="Under Review" <?= $app['status'] === 'Under Review' ? 'selected' : '' ?>>Under Review</option>
+                <option value="Interview Scheduled" <?= $app['status'] === 'Interview Scheduled' ? 'selected' : '' ?>>Interview Scheduled</option>
+            <?php else: ?>
+                <option value="Pending" <?= $app['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                <option value="Under Review" <?= $app['status'] === 'Under Review' ? 'selected' : '' ?>>Under Review</option>
+                <option value="Interview Scheduled" <?= $app['status'] === 'Interview Scheduled' ? 'selected' : '' ?>>Interview Scheduled</option>
+                <option value="Accepted" <?= $app['status'] === 'Accepted' ? 'selected' : '' ?>>Accepted</option>
+                <option value="Rejected" <?= $app['status'] === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+            <?php endif; ?>
+        </select>
+    <?php endif; ?>
+</td>
+
                             <td class="py-3 px-6">
                                 <select onchange="updatePosition(<?= $app['id'] ?>, this.value)" 
                                         class="px-3 py-1 border border-blue-200 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
