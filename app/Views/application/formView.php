@@ -142,6 +142,16 @@
     <?php if (old('experience_level') === 'experienced'): ?>
     toggleExperience(true);
     <?php endif; ?>
+
+function sendNotification() 
+{
+   document.getElementbyId('submit');
+
+
+
+}
+
+
 </script>
 
 </body>

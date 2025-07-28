@@ -84,10 +84,22 @@ class ApplicationController extends BaseController
         $builder = $model;
 
         if ($user && $user['role'] === 'interviewer') {
-            $builder = $builder->where('status', 'Under Review')
-                               ->where('preferred_location', $user['location'])
-                               ->where('position', 'Tech');
-        } elseif ($user && $user['role'] === 'hr') {
+            $builder = $builder->groupStart()
+                // Unassigned Tech applications from their location with Under Review status
+                ->groupStart()
+                    ->where('status', 'Under Review')
+                    ->where('preferred_location', $user['location'])
+                    ->where('position', 'Tech')
+                ->groupEnd()
+        
+                ->orGroupStart()
+                    // Applications assigned to this interviewer with valid status
+                    ->where('interviewer_id', $user['id'])
+                    ->whereIn('status', ['Under Review', 'Interview Scheduled'])
+                ->groupEnd()
+            ->groupEnd();
+        }
+        elseif ($user && $user['role'] === 'hr') {
             $builder = $builder->where('preferred_location', $user['location']);
         }
 
@@ -155,10 +167,22 @@ class ApplicationController extends BaseController
         $builder = $model;
 
         if ($user && $user['role'] === 'interviewer') {
-            $builder = $builder->where('status', 'Under Review')
-                               ->where('preferred_location', $user['location'])
-                               ->where('position', $user['department']);
-        } elseif ($user && $user['role'] === 'hr') {
+            $builder = $builder->groupStart()
+                // Unassigned Tech applications from their location with Under Review status
+                ->groupStart()
+                    ->where('status', 'Under Review')
+                    ->where('preferred_location', $user['location'])
+                    ->where('position', 'Tech')
+                ->groupEnd()
+        
+                ->orGroupStart()
+                    // Applications assigned to this interviewer with valid status
+                    ->where('interviewer_id', $user['id'])
+                    ->whereIn('status', ['Under Review', 'Interview Scheduled'])
+                ->groupEnd()
+            ->groupEnd();
+        }
+         elseif ($user && $user['role'] === 'hr') {
             $builder = $builder->where('preferred_location', $user['location']);
         }
 
@@ -335,25 +359,53 @@ class ApplicationController extends BaseController
     }
 
     public function assignInterviewer()
-    {
-        if (!$this->request->isAJAX()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
-        }
-
-        $applicationId = $this->request->getPost('application_id');
-        $interviewerId = $this->request->getPost('interviewer_id');
-
-        if (!$applicationId || !$interviewerId) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Missing data']);
-        }
-
-        $model = new \App\Models\ApplicationModel();
-        $updated = $model->update($applicationId, ['interviewer_id' => $interviewerId]);
-
-        return $this->response->setJSON(['success' => $updated]);
+{
+    if (!$this->request->isAJAX()) {
+        return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
     }
+
+    $session = session();
+    $userRole = $session->get('role');
+
+    // Allow only hr, admin, superadmin, and interviewer
+    $allowedRoles = ['hr', 'admin', 'superadmin', 'interviewer'];
+    if (!in_array($userRole, $allowedRoles)) {
+        return $this->response->setJSON(['success' => false, 'message' => 'Unauthorized role']);
+    }
+
+    $applicationId = $this->request->getPost('application_id');
+    $interviewerId = $this->request->getPost('interviewer_id');
+
+    if (!$applicationId || !$interviewerId) {
+        return $this->response->setJSON(['success' => false, 'message' => 'Missing data']);
+    }
+
+    $model = new \App\Models\ApplicationModel();
+    $updated = $model->update($applicationId, ['interviewer_id' => $interviewerId]);
+
+    return $this->response->setJSON(['success' => $updated]);
+}
+
+function sendNotification()
+{
+ 
+
+    if(!this->request->AJAX())
+    {
+        return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
+    }
+
+    $f_Name= $this->request->getPost('first_name');
+    $l_Name = $this->request->getPost('last_name');
+
+    
+
+
 }
 
 
 
+
+
+}
 
